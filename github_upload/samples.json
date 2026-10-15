@@ -1,0 +1,15 @@
+{
+  "units": "mm",
+  "models": [
+    {
+      "name": "rectangular_bar",
+      "dimensions": {
+        "width": 100,
+        "depth": 30,
+        "height": 10
+      },
+      "parameters": {},
+      "expected_volume_mm3": 30000
+    }
+  ]
+}
