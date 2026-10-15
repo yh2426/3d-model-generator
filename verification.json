@@ -1,0 +1,30 @@
+{
+  "rectangular_bar": {
+    "stl": {
+      "dimensions_mm": [
+        100.0,
+        30.0,
+        10.0
+      ],
+      "volume_mm3": 30000.0,
+      "vertices": 8,
+      "triangles": 12,
+      "closed_manifold": true,
+      "connected": true,
+      "outward_winding": true
+    },
+    "glb": {
+      "dimensions_mm": [
+        100.00000149011612,
+        29.999999329447746,
+        9.999999776482582
+      ],
+      "volume_mm3": 29999.999105930325,
+      "vertices": 8,
+      "triangles": 12,
+      "closed_manifold": true,
+      "connected": true,
+      "outward_winding": true
+    }
+  }
+}

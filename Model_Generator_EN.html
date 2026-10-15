@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3D Model Generator</title>
+<style>
+:root{font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;color:#182b2b;background:#f5f6f2;font-size:14px}*{box-sizing:border-box}body{margin:0}header{border-bottom:1px solid #dce2db;padding:22px 5%;display:flex;align-items:center;justify-content:space-between}.brand{font-size:20px;font-weight:750;letter-spacing:-.6px}.brand span{color:#087d6b}.tag{font-size:12px;letter-spacing:1.4px;color:#55706a}main{max-width:1400px;margin:auto;padding:38px 5%}h1{font-size:34px;letter-spacing:-1.3px;margin:0 0 10px}p{line-height:1.7;color:#586d67}.intro{margin-bottom:28px}.workspace{display:grid;grid-template-columns:340px minmax(0,1fr);gap:24px}.panel{background:white;border:1px solid #dce2db;border-radius:18px;padding:24px}.step{font-size:11px;letter-spacing:1.5px;color:#087d6b;font-weight:700}h2{font-size:18px;margin:9px 0 18px}.upload{border:1px dashed #9db4a8;border-radius:12px;padding:22px 12px;text-align:center;background:#fafcf8;display:block;cursor:pointer}.upload strong{display:block;margin-bottom:8px}.upload small{color:#60766d}#photo{width:100%;margin-top:12px;font-size:12px}#photoPreview{display:none;max-height:140px;max-width:100%;margin:12px auto 0;border-radius:8px}label.field{display:block;font-size:12px;font-weight:600;margin:18px 0 8px}select,input[type=number]{font:inherit;color:inherit;border:1px solid #cbd6cd;border-radius:8px;padding:10px;width:100%;background:white}.dims{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.dims label{font-size:12px;color:#61776e}.dims input{margin-top:8px;min-width:0}.divider{height:1px;background:#e5ebe3;margin:24px 0}.note{font-size:12px;background:#f3f6ec;padding:12px;border-radius:9px;color:#546443;line-height:1.7}button,.download{font:inherit;cursor:pointer;border:1px solid #cbd6cd;background:white;border-radius:8px;padding:10px 14px;color:#27483f;text-decoration:none}button:hover,.download:hover{background:#edf4ed}button:disabled{opacity:.5;cursor:wait}.primary{width:100%;background:#087d6b;color:white;border:0;margin-top:16px;padding:14px;font-weight:650}.primary:hover{background:#066958}.viewer{padding:0;overflow:hidden;display:flex;flex-direction:column}.viewerHead{padding:22px 24px;display:flex;justify-content:space-between;gap:12px;align-items:center}.viewerHead h2{margin:6px 0 0}.badge{background:#e5f1e8;color:#26704d;padding:6px 10px;border-radius:20px;font-size:11px}.stage{position:relative;min-height:450px;flex:1;background:radial-gradient(ellipse at center,#f8faf5,#e9eee7)}canvas{display:block;width:100%;height:450px;touch-action:none;cursor:grab}canvas:active{cursor:grabbing}.controls{position:absolute;top:16px;right:16px;display:flex;gap:6px}.controls button{width:38px;height:36px;padding:0;background:#fffffff0}.hint{position:absolute;bottom:16px;left:20px;font-size:12px;color:#597266;pointer-events:none}.overlay{position:absolute;inset:0;background:#f4f7f0ed;display:flex;align-items:center;justify-content:center;text-align:center;padding:30px;pointer-events:none}.overlay[hidden]{display:none}.viewerFoot{padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:18px;border-top:1px solid #e0e6db}.viewerFoot p{font-size:12px;margin:6px 0 0}#downloads{display:flex;gap:8px}#status{margin:12px 0 0;font-size:12px;min-height:22px}#status.error{color:#ac332d}footer{font-size:12px;margin-top:22px;color:#738077}.download[aria-disabled=true]{opacity:.4;pointer-events:none}@media(max-width:850px){.workspace{grid-template-columns:1fr}.panel{padding:20px}.viewer{padding:0}main{padding:25px 5%}h1{font-size:28px}.tag{display:none}.viewerFoot{flex-wrap:wrap}.stage{min-height:340px}canvas{height:340px}}
+</style>
+</head>
+<body>
+<header><div class="brand">3D Model Generator</div></header>
+<main>
+<div class="workspace"><section class="panel" aria-label="Model settings">
+<div class="step">01 / REFERENCE</div><h2>Add a reference photo</h2>
+<label class="upload" for="photo"><strong>+ Choose an object photo</strong><small>PNG / JPEG / WebP · Up to 10 MB</small><input id="photo" type="file" accept="image/png,image/jpeg,image/webp"><img id="photoPreview" alt="Selected reference photo"></label><p style="font-size:12px">Photos stay on your device and are not used for modeling yet.</p>
+<div class="divider"></div><div class="step">02 / PARAMETERS</div><h2>Define the dimensions</h2>
+<form id="form"><label class="field" for="model">Sample model</label><select id="model" disabled></select>
+<label class="field" for="unit">Length unit</label><select id="unit"><option value="mm">Millimeters (mm)</option><option value="cm">Centimeters (cm)</option><option value="inch">Inches (inch)</option></select>
+<div class="dims"><label for="width">Width<input id="width" type="number" step="any" required min="0.001" max="10000"></label><label for="depth">Depth<input id="depth" type="number" step="any" required min="0.001" max="10000"></label><label for="height">Height<input id="height" type="number" step="any" required min="0.001" max="10000"></label></div>
+<p class="note">Mock mode: dimension edits demonstrate the workflow. Previews and downloads always use the original Step 1 samples; custom dimensions do not rebuild the model yet.</p>
+<button class="primary" id="generate" disabled>Generate preview →</button><div id="status" role="status" aria-live="polite">Loading sample configuration…</div></form>
+</section>
+<section class="panel viewer" aria-label="3D model preview"><div class="viewerHead"><div><div class="step">03 / MODEL PREVIEW</div><h2 id="resultName">Model preview</h2></div><span class="badge">LOCAL · MOCK</span></div>
+<div class="stage"><canvas id="canvas" aria-label="3D preview: drag to rotate, scroll to zoom, or use arrow and plus/minus keys" tabindex="0"></canvas><div class="controls"><button id="zoomIn" aria-label="Zoom in" type="button">＋</button><button id="zoomOut" aria-label="Zoom out" type="button">−</button><button id="reset" aria-label="Reset view" type="button">↺</button></div><div class="hint">Drag to rotate · Scroll to zoom · Arrow keys to rotate</div><div id="overlay" class="overlay">Choose a model and click Generate<br>to see the 3D result</div></div>
+<div class="viewerFoot"><div><strong id="actual">No model generated yet</strong><p id="resultInfo">Actual dimensions and downloads will appear here.</p></div><div id="downloads"><a class="download" id="stl" aria-disabled="true">↓ STL</a><a class="download" id="glb" aria-disabled="true">↓ GLB</a></div></div></section></div>
+</main>
+<script>const embeddedAssets={"../samples.json": "data:application/json;base64,ew0KICAidW5pdHMiOiAibW0iLA0KICAibW9kZWxzIjogWw0KICAgIHsNCiAgICAgICJuYW1lIjogInJlY3Rhbmd1bGFyX2JhciIsDQogICAgICAiZGltZW5zaW9ucyI6IHsNCiAgICAgICAgIndpZHRoIjogMTAwLA0KICAgICAgICAiZGVwdGgiOiAzMCwNCiAgICAgICAgImhlaWdodCI6IDEwDQogICAgICB9LA0KICAgICAgInBhcmFtZXRlcnMiOiB7fSwNCiAgICAgICJleHBlY3RlZF92b2x1bWVfbW0zIjogMzAwMDANCiAgICB9DQogIF0NCn0NCg==", "../models/rectangular_bar.stl": "data:application/octet-stream;base64,UHl0aG9uIE1vZGVsIEdlbmVyYXRvcjsgY29vcmRpbmF0ZXMgaW4gbWlsbGltZXRlcnMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMAAAAAACAvwAAAAAAAAAAAAAAAAAAAAAAACBBAAAAAAAA8EEAACBBAAAAAAAA8EEAAAAAAAAAAIC/AAAAAAAAAAAAAAAAAAAAAAAAIEEAAAAAAADwQQAAAAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAyEIAAAAAAAAAAAAAyEIAAPBBAAAAAAAAyEIAAPBBAAAgQQAAAACAPwAAAAAAAAAAAADIQgAAAAAAAAAAAADIQgAA8EEAACBBAADIQgAAAAAAACBBAAAAAAAAAACAvwAAAAAAAMhCAAAAAAAAAAAAAMhCAAAAAAAAIEEAAAAAAAAAAAAAIEEAAAAAAAAAAIC/AAAAAAAAyEIAAAAAAAAAAAAAAAAAAAAAAAAgQQAAAAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAA8EEAAAAAAAAAAAAA8EEAACBBAADIQgAA8EEAACBBAAAAAAAAAACAPwAAAAAAAAAAAADwQQAAAAAAAMhCAADwQQAAIEEAAMhCAADwQQAAAAAAAAAAAAAAAAAAAACAvwAAAAAAAPBBAAAAAAAAyEIAAPBBAAAAAAAAyEIAAAAAAAAAAAAAAAAAAAAAAAAAAIC/AAAAAAAA8EEAAAAAAADIQgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAIEEAAMhCAAAAAAAAIEEAAMhCAADwQQAAIEEAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAgQQAAyEIAAPBBAAAgQQAAAAAAAPBBAAAgQQAA", "../models/rectangular_bar.glb": "data:application/octet-stream;base64,Z2xURgIAAADIAwAAvAIAAEpTT057ImFzc2V0Ijp7InZlcnNpb24iOiIyLjAiLCJnZW5lcmF0b3IiOiJQeXRob24gTW9kZWwgR2VuZXJhdG9yIn0sInNjZW5lIjowLCJzY2VuZXMiOlt7Im5vZGVzIjpbMF19XSwibm9kZXMiOlt7Im1lc2giOjAsIm5hbWUiOiJyZWN0YW5ndWxhcl9iYXIifV0sIm1lc2hlcyI6W3sicHJpbWl0aXZlcyI6W3siYXR0cmlidXRlcyI6eyJQT1NJVElPTiI6MH0sImluZGljZXMiOjEsIm1hdGVyaWFsIjowfV19XSwibWF0ZXJpYWxzIjpbeyJwYnJNZXRhbGxpY1JvdWdobmVzcyI6eyJiYXNlQ29sb3JGYWN0b3IiOlswLjE2LDAuNTUsMC43NSwxXSwibWV0YWxsaWNGYWN0b3IiOjAsInJvdWdobmVzc0ZhY3RvciI6MC43NX19XSwiYnVmZmVycyI6W3siYnl0ZUxlbmd0aCI6MjQwfV0sImJ1ZmZlclZpZXdzIjpbeyJidWZmZXIiOjAsImJ5dGVPZmZzZXQiOjAsImJ5dGVMZW5ndGgiOjk2LCJ0YXJnZXQiOjM0OTYyfSx7ImJ1ZmZlciI6MCwiYnl0ZU9mZnNldCI6OTYsImJ5dGVMZW5ndGgiOjE0NCwidGFyZ2V0IjozNDk2M31dLCJhY2Nlc3NvcnMiOlt7ImJ1ZmZlclZpZXciOjAsImNvbXBvbmVudFR5cGUiOjUxMjYsImNvdW50Ijo4LCJ0eXBlIjoiVkVDMyIsIm1pbiI6WzAuMCwwLjAsLTAuMDNdLCJtYXgiOlswLjEsMC4wMSwwLjBdfSx7ImJ1ZmZlclZpZXciOjEsImNvbXBvbmVudFR5cGUiOjUxMjUsImNvdW50IjozNiwidHlwZSI6IlNDQUxBUiJ9XX0g8AAAAEJJTgAAAAAAAAAAAAAAAAAAAAAAAAAAAI/C9bwAAAAACtcjPI/C9bwAAAAACtcjPAAAAADNzMw9AAAAAAAAAADNzMw9AAAAAI/C9bzNzMw9CtcjPI/C9bzNzMw9CtcjPAAAAAADAAAAAgAAAAEAAAADAAAAAQAAAAAAAAAEAAAABQAAAAYAAAAEAAAABgAAAAcAAAAEAAAABwAAAAMAAAAEAAAAAwAAAAAAAAABAAAAAgAAAAYAAAABAAAABgAAAAUAAAABAAAABQAAAAQAAAABAAAABAAAAAAAAAADAAAABwAAAAYAAAADAAAABgAAAAIAAAA="};
+
+async function embeddedResponse(path) {
+  const encoded = embeddedAssets[path];
+  if (!encoded) throw Error('Missing bundled asset: '+path);
+  const bytes = Uint8Array.from(atob(encoded.split(',')[1]), ch=>ch.charCodeAt(0));
+  return {ok:true, json:async()=>JSON.parse(new TextDecoder().decode(bytes)),
+          arrayBuffer:async()=>bytes.buffer};
+}
+'use strict';
+const $ = id => document.getElementById(id);
+const factors = {mm:1,cm:10,inch:25.4};
+const names = {rectangular_bar:'Rectangular bar'};
+let models = [], currentUnit = 'mm', triangles = [], yaw = -0.6, pitch = -0.45, zoom = 1;
+let radius = 1, center = [0,0,0], photoURL, drag;
+const canvas = $('canvas'), ctx = canvas.getContext('2d');
+function status(message, error=false) { $('status').textContent=message; $('status').className=error?'error':''; }
+function fillDimensions() {
+  const model = models[Number($('model').value)];
+  for (const key of ['width','depth','height']) $(key).value=+(model.dimensions[key]/factors[currentUnit]).toFixed(6);
+}
+function clearResult() {
+  triangles=[]; draw();
+  $('overlay').hidden=false; $('overlay').textContent='Choose a model and click Generate to preview it';
+  $('actual').textContent='No model generated yet'; $('resultName').textContent='Model preview';
+  $('resultInfo').textContent='Actual dimensions and downloads will appear here.';
+  for (const ext of ['stl','glb']) { $(ext).removeAttribute('href'); $(ext).setAttribute('aria-disabled','true'); }
+}
+$('model').addEventListener('change',()=>{fillDimensions();clearResult();status('Model changed. Generate a new preview.');});
+$('unit').addEventListener('change',()=>{
+  const next=$('unit').value;
+  for (const key of ['width','depth','height']) {
+    const input=$(key);
+    if(input.value!=='' && Number.isFinite(input.valueAsNumber)) input.value=+(input.valueAsNumber*factors[currentUnit]/factors[next]).toFixed(6);
+  }
+  currentUnit=next;
+});
+for(const key of ['width','depth','height']) $(key).addEventListener('input',()=>status('Parameters edited. Mock results still use the original sample dimensions.'));
+$('photo').addEventListener('change',()=>{
+  if(photoURL) URL.revokeObjectURL(photoURL);
+  $('photoPreview').style.display='none';
+  const file=$('photo').files[0];
+  if(!file) return;
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>10*1024*1024) {
+    $('photo').value=''; status('Choose a PNG, JPEG, or WebP image up to 10 MB.',true);return;
+  }
+  photoURL=URL.createObjectURL(file);
+  $('photoPreview').src=photoURL;
+  $('photoPreview').onload=()=>{$('photoPreview').style.display='block';status('Photo previewed locally. It is not uploaded or used to generate the model.');};
+  $('photoPreview').onerror=()=>{status('Cannot read this image. Please choose another photo.',true);$('photo').value='';};
+});
+function parseSTL(buffer) {
+  if(buffer.byteLength<84) throw Error('Incomplete STL file');
+  const view=new DataView(buffer), count=view.getUint32(80,true);
+  if(count===0||buffer.byteLength!==84+count*50) throw Error('Invalid STL format');
+  return Array.from({length:count},(_,i)=>Array.from({length:3},(_,j)=>Array.from({length:3},(_,k)=>{
+    const v=view.getFloat32(84+i*50+12+j*12+k*4,true);
+    if(!Number.isFinite(v)) throw Error('Invalid STL coordinates');
+    return v;
+  })));
+}
+$('form').addEventListener('submit',async event=>{
+  event.preventDefault();
+  if(!$('form').reportValidity()) return;
+  const model=models[Number($('model').value)];
+  const requested=Object.fromEntries(['width','depth','height'].map(k=>[k,$(k).valueAsNumber*factors[currentUnit]]));
+  clearResult();
+  for(const id of ['generate','model','unit','width','depth','height']) $(id).disabled=true;
+  $('generate').textContent='Generating…';$('overlay').textContent='Loading sample model…';status('Generating mock result…');
+  try {
+    await new Promise(resolve=>setTimeout(resolve,650));
+    const response=await embeddedResponse(`../models/${model.name}.stl`);
+    if(!response.ok) throw Error(`Model loading failed (${response.status})`);
+    triangles=parseSTL(await response.arrayBuffer());
+    const points=triangles.flat(), min=[0,1,2].map(a=>Math.min(...points.map(p=>p[a])));
+    const max=[0,1,2].map(a=>Math.max(...points.map(p=>p[a])));
+    center=min.map((v,a)=>(v+max[a])/2);radius=Math.max(...max.map((v,a)=>v-min[a]));
+    reset();$('overlay').hidden=true;$('resultName').textContent=names[model.name];
+    $('actual').textContent=`Actual sample: ${max.map((v,a)=>+(v-min[a]).toFixed(3)).join(' × ')} mm`;
+    $('resultInfo').textContent=`Your input: ${Object.values(requested).map(v=>+v.toFixed(3)).join(' × ')} mm · Preview and downloads use the original sample`;
+    for(const ext of ['stl','glb']) {$(ext).href=embeddedAssets[`../models/${model.name}.${ext}`];$(ext).download=`${model.name}.${ext}`;$(ext).setAttribute('aria-disabled','false');}
+    status('Mock result ready. Rotate, zoom, or download the original sample.');
+  } catch(error) {clearResult();$('overlay').textContent='Model loading failed. Check the files and try again.';status(error.message,true);}
+  finally {for(const id of ['generate','model','unit','width','depth','height']) $(id).disabled=false;$('generate').textContent='Generate preview →';}
+});
+function reset(){yaw=-0.6;pitch=-0.45;zoom=1;draw();}
+function scaleZoom(factor){zoom=Math.max(0.4,Math.min(3,zoom*factor));draw();}
+function draw(){
+  const w=canvas.clientWidth,h=canvas.clientHeight,dpr=window.devicePixelRatio||1;
+  canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+  if(!triangles.length)return;
+  const transform=p=>{
+    const x=p[0]-center[0],z=p[1]-center[1],y=p[2]-center[2];
+    const rx=x*Math.cos(yaw)-z*Math.sin(yaw),rz=x*Math.sin(yaw)+z*Math.cos(yaw);
+    return [rx,y*Math.cos(pitch)-rz*Math.sin(pitch),y*Math.sin(pitch)+rz*Math.cos(pitch)];
+  };
+  const project=p=>{const s=Math.min(w,h)*0.69*zoom/radius*4/(4+p[2]/radius);return [w/2+p[0]*s,h/2-p[1]*s];};
+  ctx.strokeStyle='#d6dfd2';ctx.lineWidth=1;
+  for(let i=-4;i<=4;i++) {ctx.beginPath();ctx.moveTo(w/2+i*48,0);ctx.lineTo(w/2+i*48,h);ctx.stroke();ctx.beginPath();ctx.moveTo(0,h/2+i*48);ctx.lineTo(w,h/2+i*48);ctx.stroke();}
+  const faces=triangles.map(t=>t.map(transform)).sort((a,b)=>b.reduce((s,p)=>s+p[2],0)-a.reduce((s,p)=>s+p[2],0));
+  for(const face of faces){
+    const a=face[1].map((v,i)=>v-face[0][i]),b=face[2].map((v,i)=>v-face[0][i]);
+    const n=[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+    const light=Math.abs((n[0]*-.4+n[1]*.7+n[2]*-.6)/Math.hypot(...n));
+    const pts=face.map(project);ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.closePath();
+    ctx.fillStyle=`hsl(164,35%,${38+light*22}%)`;ctx.fill();ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=.5;ctx.stroke();
+  }
+}
+canvas.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY];canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointermove',e=>{if(!drag)return;yaw+=(e.clientX-drag[0])*.01;pitch=Math.max(-1.4,Math.min(1.4,pitch+(e.clientY-drag[1])*.01));drag=[e.clientX,e.clientY];draw();});
+for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,()=>{drag=null;});
+canvas.addEventListener('wheel',e=>{e.preventDefault();scaleZoom(Math.exp(-e.deltaY*.001));},{passive:false});
+canvas.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-'].includes(e.key))return;e.preventDefault();if(e.key==='ArrowLeft')yaw-=.1;if(e.key==='ArrowRight')yaw+=.1;if(e.key==='ArrowUp')pitch=Math.max(-1.4,pitch-.1);if(e.key==='ArrowDown')pitch=Math.min(1.4,pitch+.1);if(['+','='].includes(e.key))scaleZoom(1.15);if(e.key==='-')scaleZoom(1/1.15);draw();});
+$('zoomIn').onclick=()=>scaleZoom(1.2);$('zoomOut').onclick=()=>scaleZoom(1/1.2);$('reset').onclick=reset;
+new ResizeObserver(draw).observe(canvas);
+(async()=>{try{const response=await embeddedResponse('../samples.json');if(!response.ok)throw Error('Cannot read configuration');const config=await response.json();models=config.models;for(const [i,model]of models.entries())$('model').add(new Option(names[model.name],i));fillDimensions();$('model').disabled=false;$('generate').disabled=false;status('Ready. Choose a sample and generate a preview.');}catch(error){status('Initialization failed. Check the bundled assets, or follow the README server instructions.',true);}})();
+
+</script>
+</body></html>
